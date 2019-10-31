@@ -657,11 +657,21 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
 
     uint32_t destination = (uint32_t)pdst + (y * 390 + x) * 4;
     uint32_t source      = (uint32_t)psrc;    
+    uint32_t trimed_xsize;
+
     printf("destination : 0x%X, source : 0x%X, xsize %d ysize %d\n", destination, source, xsize, ysize);
+
+    if((x+xsize) > 390)
+    {
+      trimed_xsize = 390 - x;
+      hdma2d.LayerCfg[1].InputOffset = xsize - trimed_xsize;
+      xsize = trimed_xsize;
+    }
 
     hdma2d.Init.OutputOffset = 390 - xsize;
 
-    if(hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_ARGB8888)
+    if((hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_ARGB8888) ||
+        (hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_A8))
     {
       hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 
@@ -705,14 +715,7 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
 
 static void STM32_DMA2D_SetLayer_InputColor(uint32_t pf)
 {
-  if(pf == DMA2D_PF_ARGB8888)
-  {
-    hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
-  }
-  else
-  {
-    hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB888;
-  }
+  hdma2d.LayerCfg[1].InputColorMode = pf;
 }
 #endif
 /****************************************************************************

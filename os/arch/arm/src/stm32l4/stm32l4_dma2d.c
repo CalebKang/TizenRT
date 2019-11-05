@@ -683,11 +683,12 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
         if(HAL_DMA2D_ConfigLayer(&hdma2d, 1) == HAL_OK){
           if(HAL_DMA2D_ConfigLayer(&hdma2d, 0) == HAL_OK){
               if(HAL_DMA2D_BlendingStart(&hdma2d, source, destination, destination, xsize, ysize) == HAL_OK){
-                  if(HAL_DMA2D_PollForTransfer(&hdma2d, 100) != HAL_OK){
-                      printf("buffer copy error\n");
-                  }else{
-                      printf("buffer copy done\n");
-                  }
+                while(hdma2d.Instance->CR&0x00000001 == 0x00000001);
+                if(HAL_DMA2D_PollForTransfer(&hdma2d, 100) != HAL_OK){
+                    printf("buffer copy error\n");
+                }else{
+                    printf("buffer copy done\n");
+                }
               }
           }
         }

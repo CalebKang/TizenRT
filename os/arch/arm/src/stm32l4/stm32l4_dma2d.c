@@ -667,6 +667,10 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
       hdma2d.LayerCfg[1].InputOffset = xsize - trimed_xsize;
       xsize = trimed_xsize;
     }
+    else
+    {
+      hdma2d.LayerCfg[1].InputOffset = 0;
+    }
 
     hdma2d.Init.OutputOffset = 390 - xsize;
 

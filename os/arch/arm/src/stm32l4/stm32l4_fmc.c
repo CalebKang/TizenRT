@@ -535,7 +535,7 @@ uint8_t stm32l4_fmc_psram_initialize(void)
     for 60Mhz as PSRAM clock frequency */
     Timing.AddressSetupTime      = 4;
     Timing.AddressHoldTime       = 2;
-    Timing.DataSetupTime         = 6;
+    Timing.DataSetupTime         = 5;
     Timing.BusTurnAroundDuration = 1;
     Timing.CLKDivision           = 2;
     Timing.DataLatency           = 2;
@@ -554,7 +554,7 @@ uint8_t stm32l4_fmc_psram_initialize(void)
     psramHandle.Init.AsynchronousWait   = FMC_ASYNCHRONOUS_WAIT_DISABLE;
     psramHandle.Init.WriteBurst         = FMC_WRITE_BURST_DISABLE;
     psramHandle.Init.ContinuousClock    = FMC_CONTINUOUS_CLOCK_SYNC_ASYNC;
-    psramHandle.Init.WriteFifo          = FMC_WRITE_FIFO_DISABLE;
+    psramHandle.Init.WriteFifo          = FMC_WRITE_FIFO_ENABLE;
     psramHandle.Init.NBLSetupTime       = 0;
     psramHandle.Init.PageSize           = FMC_PAGE_SIZE_NONE;
 

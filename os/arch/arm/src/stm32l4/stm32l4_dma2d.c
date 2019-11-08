@@ -233,6 +233,7 @@ static int stm32_dma2d_blend(FAR struct stm32_dma2d_overlay_s *doverlay,
 static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, uint16_t y,
                             uint16_t xsize, uint16_t ysize);
 static void STM32_DMA2D_SetLayer_InputColor(uint32_t pf);
+static void STM32_DMA2D_InputFontColor(uint32_t rgb);
 static HAL_StatusTypeDef HAL_DMA2D_InitConfig(DMA2D_HandleTypeDef *hdma2d);
 #endif
 /****************************************************************************
@@ -285,7 +286,8 @@ static struct stm32_dma2d_s g_dma2ddev =
     .blend       = stm32_dma2d_blend,
 #ifdef USE_HAL_DRIVER
     .copybuffer  = STM32_DMA2D_CopyBuffer,
-    .inputcolor  = STM32_DMA2D_SetLayer_InputColor
+    .inputcolor  = STM32_DMA2D_SetLayer_InputColor,
+    .input_fontcolor = STM32_DMA2D_InputFontColor
 #endif
   },
 #ifdef CONFIG_STM32L4_FB_CMAP
@@ -573,7 +575,24 @@ static int stm32_dma2d_fillcolor(FAR struct stm32_dma2d_overlay_s *oinfo,
                                  FAR const struct fb_area_s *area,
                                  uint32_t argb)
 {
-    return 0;
+  uint32_t pdst = (uint32_t *)(0x60000000);//PhysFrameBuffer;
+  uint32_t destination = (uint32_t)pdst + (area->y * 390 + area->x) * 4;
+
+  /* Register to memory mode with ARGB8888 as color Mode */
+  hdma2d.Init.Mode          = DMA2D_R2M;
+  hdma2d.Init.OutputOffset  = 390 - area->w;
+
+  /* DMA2D Initialization */
+  if(HAL_DMA2D_Init(&hdma2d) == HAL_OK)
+  {
+    if (HAL_DMA2D_Start(&hdma2d, argb, (uint32_t)destination, area->w, area->h) == HAL_OK)
+    {
+      /* Polling For DMA transfer */
+      HAL_DMA2D_PollForTransfer(&hdma2d, 100);
+    }
+  }
+
+  return 0;
 }
 
 /****************************************************************************
@@ -659,7 +678,8 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
     uint32_t source      = (uint32_t)psrc;    
     uint32_t trimed_xsize;
 
-    printf("destination : 0x%X, source : 0x%X, xsize %d ysize %d\n", destination, source, xsize, ysize);
+    if((x > 389) || (y > 389))
+      return;
 
     if((x+xsize) > 390)
     {
@@ -675,7 +695,7 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
     hdma2d.Init.OutputOffset = 390 - xsize;
 
     if((hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_ARGB8888) ||
-        (hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_A8))
+       (hdma2d.LayerCfg[1].InputColorMode == DMA2D_INPUT_A8))
     {
       hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 
@@ -689,9 +709,9 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
               if(HAL_DMA2D_BlendingStart(&hdma2d, source, destination, destination, xsize, ysize) == HAL_OK){
                 while(hdma2d.Instance->CR&0x00000001 == 0x00000001);
                 if(HAL_DMA2D_PollForTransfer(&hdma2d, 100) != HAL_OK){
-                    printf("buffer copy error\n");
+                    //printf("buffer copy error\n");
                 }else{
-                    printf("buffer copy done\n");
+                    //printf("buffer copy done\n");
                 }
               }
           }
@@ -702,15 +722,13 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
     {
       hdma2d.Init.Mode = DMA2D_M2M_PFC;
 
-      hdma2d.LayerCfg[1].InputAlpha  = 0xFF;
-
       if(HAL_DMA2D_InitConfig(&hdma2d) == HAL_OK){
           if(HAL_DMA2D_ConfigLayer(&hdma2d, 1) == HAL_OK){
               if(HAL_DMA2D_Start(&hdma2d, source, destination, xsize, ysize) == HAL_OK){
                   if(HAL_DMA2D_PollForTransfer(&hdma2d, 100) != HAL_OK){
-                      printf("buffer copy error\n");
+                      //printf("buffer copy error\n");
                   }else{
-                      printf("buffer copy done\n");
+                      //printf("buffer copy done\n");
                   }
               }
           }
@@ -721,6 +739,11 @@ static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, u
 static void STM32_DMA2D_SetLayer_InputColor(uint32_t pf)
 {
   hdma2d.LayerCfg[1].InputColorMode = pf;
+}
+
+static void STM32_DMA2D_InputFontColor(uint32_t bgr)
+{
+  hdma2d.LayerCfg[1].InputAlpha = bgr;
 }
 #endif
 /****************************************************************************

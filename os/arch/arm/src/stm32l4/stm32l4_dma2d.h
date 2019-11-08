@@ -161,6 +161,7 @@ struct dma2d_layer_s
     void (*copybuffer)(uint32_t *psrc, uint32_t *pdst, uint16_t x, uint16_t y,
                        uint16_t xsize, uint16_t ysize);
     void (*inputcolor)(uint32_t pf);
+    void (*input_fontcolor)(uint32_t bgr);
 #endif
 };
 

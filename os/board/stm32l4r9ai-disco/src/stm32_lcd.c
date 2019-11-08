@@ -96,14 +96,25 @@ void dma2d_copybuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, uint16_t y,
     
     priv->inputcolor(pf);
     priv->copybuffer(psrc, pdst, x, y, xsize, ysize);
-    //STM32L4_LCD_Refresh();
 }
 
-void dma2d_fillcolor(FAR struct stm32_dma2d_overlay_s *oinfo,
-                     FAR const struct fb_area_s *area, uint32_t argb)
+void dma2d_fillcolor(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t argb)
 {
+    struct fb_area_s area;
     FAR struct dma2d_layer_s *dma2d = up_dma2ddev();
-    dma2d->fillcolor(oinfo, area, argb);
+
+    area.x = x;
+    area.y = y;
+    area.w = w;
+    area.h = h;
+
+    dma2d->fillcolor(NULL, &area, argb);
+}
+
+void dma2d_fontcolor(uint32_t bgr)
+{
+  FAR struct dma2d_layer_s *dma2d = up_dma2ddev();
+  dma2d->input_fontcolor(bgr);
 }
 
 void lcd_refresh(void)

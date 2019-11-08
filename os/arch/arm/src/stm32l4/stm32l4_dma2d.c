@@ -233,7 +233,7 @@ static int stm32_dma2d_blend(FAR struct stm32_dma2d_overlay_s *doverlay,
 static void STM32_DMA2D_CopyBuffer(uint32_t *psrc, uint32_t *pdst, uint16_t x, uint16_t y,
                             uint16_t xsize, uint16_t ysize);
 static void STM32_DMA2D_SetLayer_InputColor(uint32_t pf);
-static void STM32_DMA2D_InputFontColor(uint32_t rgb);
+static void STM32_DMA2D_InputFontColor(uint32_t bgr);
 static HAL_StatusTypeDef HAL_DMA2D_InitConfig(DMA2D_HandleTypeDef *hdma2d);
 #endif
 /****************************************************************************
